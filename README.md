@@ -4,6 +4,8 @@ snapshots-per-month
 ## Overview
 
 
+![alt text](https://raw.githubusercontent.com/wrackzone/snapshots-per-month/master/screenshot.png)
+
 ## License
 
 AppTemplate is released under the MIT license.  See the file [LICENSE](./LICENSE) for the full text.
