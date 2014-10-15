@@ -98,7 +98,7 @@ Ext.define('CustomApp', {
 			limit : 'Infinity',
 			fetch : config.fetch,
 			hydrate : config.hydrate,
-			pageSize:1000,
+			pageSize:20000,
 
 			listeners : {
 				scope : this,
