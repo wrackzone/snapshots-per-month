@@ -18,7 +18,7 @@ Ext.define('CustomApp', {
 		var configs = [ 
 			{
 				find : {
-					'Project' : { "$in" : [that.getContext().getProject().ObjectID] }
+					'_ProjectHierarchy' : { "$in" : [that.getContext().getProject().ObjectID] }
 				},
 				fetch: ['_ValidFrom','_TypeHierarchy'],
 				hydrate: ['_TypeHierarchy']
