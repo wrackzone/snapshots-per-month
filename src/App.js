@@ -6,34 +6,56 @@ Ext.define('CustomApp', {
 
     config: {
         defaultSettings: {
-            months : "6"
+            months : "6",
+            wsapiProjects : false
         }
     },
 
 	launch: function() {
 
 		var that = this;
-		that.months = [];
 
+        that.rallyFunctions = Ext.create("RallyFunctions",{ 
+            ctx : that.getContext(),
+        	keys : ['projects']
+        });
+
+		that.months = that.createMonthRanges();
+
+		if ( that.getSetting("wsapiProjects")==true) {
+			that.rallyFunctions.readRallyItems(function(error,bundle){
+    	    	console.log("rallyFunctions",error,bundle);
+    	    	console.log("projects",_.map(bundle.projects,function(p){
+    	    		return p.get("Name");
+    	    	}));
+	            that.bundle = bundle;
+	            that.createChart();	
+        	});
+		} else {
+			that.createChart();	
+		}
+		
+	},
+
+	createMonthRanges : function() {
+		var that = this;
 		var date = new Date();
-
+		var mArray = [];
 		console.log("months",that.getSetting("months"));
 
 		for(x=0; x < parseInt(that.getSetting("months")); x++) {
 			var firstDay = new Date(date.getFullYear(), date.getMonth()-x, 1);
 			var lastDay = new Date(date.getFullYear(), (date.getMonth()-x) + 1, 0);
-			that.months.push({
+			mArray.push({
 				label : firstDay.getFullYear() + "-" + 
 					firstDay.toLocaleString("en-us", { month: "long" }),
 				first : firstDay.toISOString().substring(0,10),
 				last : lastDay.toISOString().substring(0,10)
 			})
 		}
-		that.months.reverse();
-		console.log("months",that.months);
-
-		that.createChart();
-
+		mArray.reverse();
+		console.log("months",mArray);
+		return mArray;
 	},
 
 	createChart: function (projects) {
@@ -41,12 +63,23 @@ Ext.define('CustomApp', {
 		var that = this;
 
 		var configs = _.map(that.months,function(m) {
+            var find = {
+                "$and" : [{"_ValidFrom": {"$gte" : m.first}}, {"_ValidFrom":{"$lte" : m.last }}]
+            }
+
+            if (that.getSetting("wsapiProjects")==false) {
+                find['_ProjectHierarchy'] = that.getContext().getProject().ObjectID
+            } else {
+                find['Project'] = { "$in" :
+                    _.map( that.bundle.projects,function( p ) { 
+                        return p.get("ObjectID")})
+                }
+            }
+
+            console.log("find",find);
+
 			return  {
-				find : {
-					'_ProjectHierarchy' : that.getContext().getProject().ObjectID,
-					// '_ProjectHierarchy' : { "$in" : [that.getContext().getProject().ObjectID] },
-					"$and" : [{"_ValidFrom": {"$gte" : m.first}}, {"_ValidFrom":{"$lte" : m.last }}]
-				},
+				find : find,
 				fetch: ['_ValidFrom','_TypeHierarchy'],
 				hydrate: ['_TypeHierarchy']
 			}
@@ -162,6 +195,14 @@ Ext.define('CustomApp', {
             margin: '0 0 15 50',
             labelStyle : "width:200px;",
             afterLabelTpl: 'The number of months to report on.'
+        },{
+            name: 'wsapiProjects',
+            xtype: 'rallycheckboxfield',
+            boxLabelAlign: 'after',
+            fieldLabel: 'True to read projects using wsapi',
+            margin: '0 0 15 50',
+            labelStyle : "width:200px;",
+            afterLabelTpl: 'otherwise will use the lbapi project scoping'
         }];
     }
 
