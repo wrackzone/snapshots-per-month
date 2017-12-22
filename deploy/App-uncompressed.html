@@ -198,6 +198,7 @@ Ext.define('CustomApp', {
 
 		Ext.create('Rally.data.lookback.SnapshotStore', {
 			find : config.find,
+			useHttpPost : true,
 			autoLoad : true,
 			limit : 10,
 			fetch : config.fetch,
