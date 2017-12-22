@@ -43,7 +43,8 @@ Ext.define('CustomApp', {
 		var configs = _.map(that.months,function(m) {
 			return  {
 				find : {
-					'_ProjectHierarchy' : { "$in" : [that.getContext().getProject().ObjectID] },
+					'_ProjectHierarchy' : that.getContext().getProject().ObjectID,
+					// '_ProjectHierarchy' : { "$in" : [that.getContext().getProject().ObjectID] },
 					"$and" : [{"_ValidFrom": {"$gte" : m.first}}, {"_ValidFrom":{"$lte" : m.last }}]
 				},
 				fetch: ['_ValidFrom','_TypeHierarchy'],
