@@ -462,6 +462,8 @@ Ext.define("RallyFunctions", function() {
 
         recurseObject : function( obj, callback ) {
 
+        console.log("recursing...",obj);
+
         var deferred = Ext.create('Deft.Deferred');
         var list = [];
         var stack = 1;
@@ -481,7 +483,7 @@ Ext.define("RallyFunctions", function() {
             };
 
             var walk = function(root) {
-                console.log(root.get("FormattedID"),stack);
+                // console.log(root.get("FormattedID"),stack);
                 list.push(root); stack = stack - 1;
 
                 _.each(["Children","UserStories","Tasks","Defects","TestCases"],function(collection){ 
@@ -491,7 +493,8 @@ Ext.define("RallyFunctions", function() {
                         })
                     });
                 })
-                console.log(root.get("FormattedID"),stack);
+                // console.log(root.get("FormattedID"),stack);
+                console.log("recurseObject",list.length,stack);
                 if (stack==0) {
                     deferred.resolve(list);
                 }

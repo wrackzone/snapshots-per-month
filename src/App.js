@@ -20,21 +20,45 @@ Ext.define('CustomApp', {
         	keys : ['projects']
         });
 
+
 		that.months = that.createMonthRanges();
 
 		if ( that.getSetting("wsapiProjects")==true) {
-			that.rallyFunctions.readRallyItems(function(error,bundle){
-    	    	console.log("rallyFunctions",error,bundle);
-    	    	console.log("projects",_.map(bundle.projects,function(p){
-    	    		return p.get("Name");
-    	    	}));
-	            that.bundle = bundle;
+			that.readSubProjects(function(list){
+				that.subProjects = list;
 	            that.createChart();	
-        	});
+	        });
 		} else {
 			that.createChart();	
 		}
 		
+	},
+
+	readSubProjects : function(callback) {
+		var that = this;
+
+        that.rallyFunctions._loadAStoreWithAPromise(
+        	"Project",
+        	["ObjectID","Parent","Name","Children"],
+        	[ { property:"ObjectID", operator:"=", value:that.getContext().getProject().ObjectID } ]
+    	).then({
+            scope: that,
+            success: function(projects) {
+            
+            	console.log("Current Project:",projects);
+				that.rallyFunctions.recurseObject(_.first(projects))
+					.then({
+
+						success : function(list) {
+							console.log("success",list);
+							callback(list);
+						},
+						failure : function(err) {
+							console.log("error",err);
+						}
+				})
+            }
+        });
 	},
 
 	createMonthRanges : function() {
@@ -71,7 +95,7 @@ Ext.define('CustomApp', {
                 find['_ProjectHierarchy'] = that.getContext().getProject().ObjectID
             } else {
                 find['Project'] = { "$in" :
-                    _.map( that.bundle.projects,function( p ) { 
+                    _.map( that.subProjects,function( p ) { 
                         return p.get("ObjectID")})
                 }
             }
