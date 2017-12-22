@@ -4,7 +4,7 @@ snapshots-per-month
 ## Overview
 
 
-![alt text](https://raw.githubusercontent.com/wrackzone/snapshots-per-month/master/screenshot.png)
+![alt text](https://raw.githubusercontent.com/wrackzone/snapshots-per-month/master/screenshot-month.png)
 
 ## License
 
