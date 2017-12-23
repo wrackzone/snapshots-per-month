@@ -2,11 +2,17 @@
 Ext.define('CustomApp', {
 	extend: 'Rally.app.App',
 	componentCls: 'app',
-	// items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc3/doc/">App SDK 2.0rc3 Docs</a>'},
 
     config: {
         defaultSettings: {
-            months : "6",
+			// The time period to report on.
+        	period : "month",
+            // number of periods to report on.
+            periods : "6",
+            // if true we read the context project and all of its subprojects using the wsapi.
+            // this is useful where the hierarchy is reoorganized and we dont have snapshots for the 
+            // new hierarchy eg. you add a top level node. However it will be slower, especially in 
+            // large hierarchies
             wsapiProjects : false
         }
     },
@@ -15,13 +21,15 @@ Ext.define('CustomApp', {
 
 		var that = this;
 
+		// rally functions is a collection of utility functions 
+		// including a recursive object read
         that.rallyFunctions = Ext.create("RallyFunctions",{ 
             ctx : that.getContext(),
         	keys : ['projects']
         });
 
 
-		that.months = that.createMonthRanges();
+		that.periods = that.createTimePeriodRanges();
 
 		if ( that.getSetting("wsapiProjects")==true) {
 			that.readSubProjects(function(list){
@@ -61,24 +69,34 @@ Ext.define('CustomApp', {
         });
 	},
 
-	createMonthRanges : function() {
+	dateFormats : {
+		"hour" : "hh A",
+		"day" : "ddd",
+		"week" : "ddd MMM DD",
+		"month" : "YYYY MMMM ",
+		"quarter" : "Qo YYYY",
+		"year" : "YYYY"
+	},
+
+	createTimePeriodRanges : function() {
 		var that = this;
 		var date = new Date();
 		var mArray = [];
-		console.log("months",that.getSetting("months"));
+		console.log("periods",that.getSetting("periods"));
+		var period = that.getSetting("period");
+		console.log("period",period);
 
-		for(x=0; x < parseInt(that.getSetting("months")); x++) {
-			var firstDay = new Date(date.getFullYear(), date.getMonth()-x, 1);
-			var lastDay = new Date(date.getFullYear(), (date.getMonth()-x) + 1, 0);
+		for(x=0; x < parseInt(that.getSetting("periods")); x++) {
+			var first = moment(date).subtract(x,period + "s").startOf(period);
+			var last = moment(date).subtract(x,period + "s").endOf(period);
 			mArray.push({
-				label : firstDay.getFullYear() + "-" + 
-					firstDay.toLocaleString("en-us", { month: "long" }),
-				first : firstDay.toISOString().substring(0,10),
-				last : lastDay.toISOString().substring(0,10)
+				label : last.format(that.dateFormats[period]),
+				first : first.toISOString(),
+				last : last.toISOString()
 			})
 		}
 		mArray.reverse();
-		console.log("months",mArray);
+		console.log("periods",mArray);
 		return mArray;
 	},
 
@@ -86,7 +104,9 @@ Ext.define('CustomApp', {
 
 		var that = this;
 
-		var configs = _.map(that.months,function(m) {
+		var configs = _.map(that.periods,function(m) {
+
+			console.log("m.first",m.first,"m.last",m.last);
             var find = {
                 "$and" : [{"_ValidFrom": {"$gte" : m.first}}, {"_ValidFrom":{"$lte" : m.last }}]
             }
@@ -121,7 +141,7 @@ Ext.define('CustomApp', {
 		// convert the arrays of data into a json format for jston store 
 		var data = _.map(results, function(data,i) {
 			return {
-				month : that.months[i].label,
+				month : that.periods[i].label,
 				count : (data)
 			};
 		});
@@ -212,14 +232,34 @@ Ext.define('CustomApp', {
     getSettingsFields: function() {
         var me = this;
 
-		return [ {
-            name: 'months',
-            xtype: 'rallytextfield',
+        var granularityStore = new Ext.data.ArrayStore({
+            fields: ['granularity'],
+            data : [['hour'],['day'],['week'],['month'],['quarter'],['year']]
+        });  
+
+		return [
+		{
+            name: 'period',
+            xtype: 'combo',
+            store : granularityStore,
+            valueField : 'granularity',
+            displayField : 'granularity',
+            queryMode : 'local',
+            forceSelection : true,
             boxLabelAlign: 'after',
-            fieldLabel: '# Months',
+            fieldLabel: 'Period Type',
             margin: '0 0 15 50',
             labelStyle : "width:200px;",
-            afterLabelTpl: 'The number of months to report on.'
+            afterLabelTpl: 'Select the time period to report on'
+		},
+		 {
+            name: 'periods',
+            xtype: 'rallytextfield',
+            boxLabelAlign: 'after',
+            fieldLabel: '# Time periods',
+            margin: '0 0 15 50',
+            labelStyle : "width:200px;",
+            afterLabelTpl: 'The number of time periods to report on.'
         },{
             name: 'wsapiProjects',
             xtype: 'rallycheckboxfield',

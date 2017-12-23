@@ -6,7 +6,8 @@
    "javascript": [
       "src/App.js",
       "src/rallyfunctions.js",
-      "lib/async.min.js"
+      "lib/async.min.js",
+      "lib/moment.min.js"
    ],
    "css": [
       "app.css"
