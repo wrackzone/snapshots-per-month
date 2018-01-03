@@ -224,14 +224,19 @@ Ext.define('CustomApp', {
 			fetch : config.fetch,
 			hydrate : config.hydrate,
 			pageSize: 10,
+			removeUnauthorizedSnapshots:true,
 
 			listeners : {
 				scope : this,
 				load: function(store, snapshots, success) {
-					console.log("Loaded:"+snapshots.length," Snapshots.");
-					console.log("Store",store);
-					// callback(null,snapshots);
-					callback(null,store.totalCount);
+                    if (success) {
+                        console.log("Loaded:"+snapshots.length," Snapshots.");
+                        console.log("Store",store);
+                        // callback(null,snapshots);
+                        callback(null,store.totalCount);                       
+                    } else {
+                        callback(null,0);                       
+                    }
 				}
 			}
 		});
