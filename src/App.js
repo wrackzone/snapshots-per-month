@@ -71,7 +71,7 @@ Ext.define('CustomApp', {
 
 	dateFormats : {
 		"hour" : "hh A",
-		"day" : "ddd",
+		"day" : "ddd MM/DD",
 		"week" : "ddd MMM DD",
 		"month" : "YYYY MMMM ",
 		"quarter" : "Qo YYYY",
